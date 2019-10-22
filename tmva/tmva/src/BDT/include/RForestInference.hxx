@@ -3,7 +3,7 @@
 
 #include "ForestHelpers.hxx"
 
-std::string generated_files_path = "generated_files/"; // For DEBUG
+std::string generated_files_path = "../generated_files/"; // For DEBUG
 
 ///  \todo:  Put this into namespace
 
@@ -20,13 +20,15 @@ protected:
    std::vector<BranchedTree::Tree<T>> _LoadFromJson(const std::string &key, const std::string &filename,
                                                     const bool &bool_sort_trees = true);
 
+   // read json
+
    std::string         s_obj_func;     ///< Default string_describing the objective function
    std::function<T(T)> objective_func; ///< Default objective function
 
 public:
    forestType trees; ///< Store the forest, either as vector or jitted function
 
-   ForestBase() : s_obj_func("identity"), objective_func(logistic_function<T>) {}
+   ForestBase() : s_obj_func("logistic"), objective_func(logistic_function<T>) {}
 
    /// Set objective function from a string name
    // void set_objective_function(const std::string &func_name); // or int KIND
@@ -67,16 +69,15 @@ public:
    /// Load Forest from a json file
    void LoadFromJson(const std::string &key, const std::string &json_filename, bool bool_sort_trees = true);
 };
-ForestBranchless
 
-   /**
-    * \class ForestBase
-    * Branched version of the Forest (topologically ordered representation)
-    *
-    * \tparam T type for the prediction. Usually floating point type (float, double, long double)
-    */
-   template <typename T>
-   class ForestBaseJIT : public ForestBase<T, std::function<T(const T *)>> {
+/**
+ * \class ForestBase
+ * Branched version of the Forest (topologically ordered representation)
+ *
+ * \tparam T type for the prediction. Usually floating point type (float, double, long double)
+ */
+template <typename T>
+class ForestBaseJIT : public ForestBase<T, std::function<T(const T *)>> {
 public:
    /// Inference event by events
    void inference(const T *events_vector, const int rows, const int cols, T *preds);
@@ -88,14 +89,14 @@ template <typename T>
 class ForestBranchedJIT : public ForestBaseJIT<T> {
 public:
    /// Load Forest from a json file
-   void LoadFromJson(const std::string &key, const std::string &filename, bool bool_sort_trees = true);
+   std::string LoadFromJson(const std::string &key, const std::string &filename, bool bool_sort_trees = true);
 };
 
 template <typename T>
 class ForestBranchlessJIT : public ForestBaseJIT<T> {
 public:
    /// Load Forest from a json file
-   void LoadFromJson(const std::string &key, const std::string &filename, bool bool_sort_trees = true);
+   std::string LoadFromJson(const std::string &key, const std::string &filename, bool bool_sort_trees = true);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -270,16 +271,14 @@ void ForestBranchless<T>::LoadFromJson(const std::string &key, const std::string
 /// \param[in] bool_sort_trees should the forest be ordered? `default=true`
 /// \param[out] Forest representation (jitted function)
 template <typename T>
-// std::string
-void ForestBranchedJIT<T>::LoadFromJson(const std::string &key, const std::string &json_filename, bool bool_sort_trees)
+std::string ForestBranchedJIT<T>::LoadFromJson(const std::string &key, const std::string &json_filename,
+                                               bool bool_sort_trees)
 {
    std::vector<BranchedTree::Tree<T>> trees = this->_LoadFromJson(key, json_filename, bool_sort_trees);
 
-   // write to file for debug
-   std::string filename = generated_files_path + "generated_forest.h";
-   write_generated_code_to_file<T, BranchedTree::Tree<T>>(trees, this->s_obj_func, filename);
-
-   this->trees = JitTrees<T, BranchedTree::Tree<T>>(trees, this->s_obj_func);
+   std::string s_trees;
+   this->trees = JitTrees<T, BranchedTree::Tree<T>>(trees, this->s_obj_func, s_trees);
+   return s_trees;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,17 +287,15 @@ void ForestBranchedJIT<T>::LoadFromJson(const std::string &key, const std::strin
 /// \param[in] bool_sort_trees should the forest be ordered? `default=true`
 /// \param[out] Forest representation (jitted function)
 template <typename T>
-void ForestBranchlessJIT<T>::LoadFromJson(const std::string &key, const std::string &json_filename,
-                                          bool bool_sort_trees)
+std::string ForestBranchlessJIT<T>::LoadFromJson(const std::string &key, const std::string &json_filename,
+                                                 bool bool_sort_trees)
 {
    std::vector<BranchedTree::Tree<T>>   trees_unique = this->_LoadFromJson(key, json_filename, bool_sort_trees);
    std::vector<BranchlessTree::Tree<T>> trees        = Branched2BranchlessTrees(trees_unique);
 
-   // write to file for debug
-   std::string filename = generated_files_path + "generated_forest.h";
-   write_generated_code_to_file<T, BranchlessTree::Tree<T>>(trees, this->s_obj_func, filename);
-
-   this->trees = JitTrees<T, BranchlessTree::Tree<T>>(trees, this->s_obj_func);
+   std::string s_trees;
+   this->trees = JitTrees<T, BranchlessTree::Tree<T>>(trees, this->s_obj_func, s_trees);
+   return s_trees;
 }
 
 #endif

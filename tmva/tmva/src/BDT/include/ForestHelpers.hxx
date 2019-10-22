@@ -90,8 +90,9 @@ template <typename T>
 void recurse_through_tree(const BranchedTree::Node<T> &node, std::vector<T> &thresholds, std::vector<int> &features,
                           int index = 0)
 {
-   BranchlessTree::Tree<T> thresholds.at(index) = node.split_threshold;
-   features.at(index)                           = node.split_variable;
+   // BranchlessTree::Tree<T>
+   thresholds.at(index) = node.split_threshold;
+   features.at(index)   = node.split_variable;
 
    int index_true  = index * 2 + 1;
    int index_false = index * 2 + 2;
@@ -171,12 +172,14 @@ std::string generate_namespace_name()
 /// \param[in] s_obj_func name of objective functions
 /// \param[out] jitted function
 template <typename T, typename trees_kind>
-std::function<T(const T *)> JitTrees(const std::vector<trees_kind> &trees, const std::string &s_obj_func)
+std::function<T(const T *)> JitTrees(const std::vector<trees_kind> &trees, const std::string &s_obj_func,
+                                     std::string &s_trees)
 {
    std::string       s_namespace_name = generate_namespace_name();
    std::stringstream ss;
    generate_code_forest<T>(ss, trees, s_namespace_name, s_obj_func);
-   std::string s_trees = ss.str();
+   // std::string s_trees = ss.str();
+   s_trees = ss.str();
    return jit_forest<T>(s_trees, s_namespace_name);
 }
 
