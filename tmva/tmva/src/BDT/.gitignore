@@ -22,6 +22,7 @@ files/
 *.txt
 *.eps
 !benchSitong.ipynb
+!SITONG2.ipynb
 # Prerequisites
 *.d
 

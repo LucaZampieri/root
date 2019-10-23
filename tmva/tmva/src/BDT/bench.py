@@ -87,7 +87,7 @@ timeVStrees = dict(
 )
 
 if __name__ == "__main__":
-
+    """
     execute_bench(
         "./tmp/timeVSfewEvents/",
         [2, 4, 6, 8, 10, 12, 14, 16, 18],
@@ -95,7 +95,6 @@ if __name__ == "__main__":
         "num_samples",
         timeVSevents,
     )
-    # """
     execute_bench(
         "./tmp/timeVSmiddleEvents/",
         [1000, 5000, 10000, 50000, 100_000],
@@ -103,6 +102,7 @@ if __name__ == "__main__":
         "num_samples",
         timeVSevents,
     )
+    # """
 
     execute_bench(
         "./tmp/timeVSevents/",
